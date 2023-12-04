@@ -1,6 +1,5 @@
-package com.example.teamcity.api.homework;
+package com.example.teamcity.api;
 
-import com.example.teamcity.api.BaseApiTest;
 import com.example.teamcity.api.enums.Role;
 import com.example.teamcity.api.generators.RandomData;
 import com.example.teamcity.api.generators.TestDataGenerator;
@@ -14,7 +13,7 @@ import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.testng.annotations.Test;
 
-public class CreateProjectTest extends BaseApiTest {
+public class HomeworkCreateProjectTest extends BaseApiTest {
     private final String EMPTY_NAME_ERROR = "Project name cannot be empty.";
     private final String PERMISSION_ERROR = "You do not have \"Create subproject\" permission in project with internal id: _Root";
     private final String PROJECT_SPECIFIED_ERROR = "No project specified. Either 'id', 'internalId' or 'locator' attribute should be present.";

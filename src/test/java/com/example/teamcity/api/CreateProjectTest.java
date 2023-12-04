@@ -11,6 +11,7 @@ import com.example.teamcity.api.requests.unchecked.UncheckedProject;
 import com.example.teamcity.api.spec.Specifications;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class CreateProjectTest extends BaseApiTest {
@@ -18,26 +19,19 @@ public class CreateProjectTest extends BaseApiTest {
     private final String PERMISSION_ERROR = "You do not have \"Create subproject\" permission in project with internal id: _Root";
     private final String PROJECT_SPECIFIED_ERROR = "No project specified. Either 'id', 'internalId' or 'locator' attribute should be present.";
 
-    @Test
-    public void systemAdminShouldHaveRightsToCreateProject() {
-        var testData = testDataStorage.addTestData();
-
-        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.SYSTEM_ADMIN, "g"));
-
-        checkedWithSuperUser.getUserRequest().create(testData.getUser());
-
-        var project = new CheckedProject(Specifications.getSpec()
-                .authSpec(testData.getUser()))
-                .create(testData.getProject());
-
-        softy.assertThat(project.getId()).isEqualTo(testData.getProject().getId());
+    @DataProvider(name = "createProjectRoleTestData")
+    public Object[][] createProjectRoleTestData() {
+        return new Object[][]{
+                {"SYSTEM_ADMIN"},
+                {"PROJECT_ADMIN"},
+                {"AGENT_MANAGER"}
+        };
     }
-
-    @Test
-    public void projectAdminShouldHaveRightsToCreateProject() {
+    @Test(dataProvider = "createProjectRoleTestData")
+    public void rolesWhoShouldHaveRightsToCreateProject(String role) {
         var testData = testDataStorage.addTestData();
 
-        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.PROJECT_ADMIN, "g"));
+        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.valueOf(role), "g"));
 
         checkedWithSuperUser.getUserRequest().create(testData.getUser());
 
@@ -161,12 +155,20 @@ public class CreateProjectTest extends BaseApiTest {
                 .body(Matchers.containsString(EMPTY_NAME_ERROR));
     }
 
-    @Test
-    public void projectViewerShouldNotHaveRightToCreateProject() {
+    @DataProvider(name = "notCreateProjectRoleTestData")
+    public Object[][] notCreateProjectRoleTestData() {
+        return new Object[][]{
+                {"PROJECT_VIEWER"},
+                {"PROJECT_DEVELOPER"},
+                {"TOOLS_INTEGRATION"}
+        };
+    }
+
+    @Test(dataProvider = "notCreateProjectRoleTestData")
+    public void roleWhoShouldNotHaveRightsToCreateProject(String role) {
         var testData = testDataStorage.addTestData();
         testData.getUser()
-                .setRoles(TestDataGenerator.
-                        generateRoles(Role.PROJECT_VIEWER, "g"));
+                .setRoles(TestDataGenerator.generateRoles(Role.valueOf(role), "g"));
         checkedWithSuperUser.getUserRequest().create(testData.getUser());
 
         new UncheckedProject(Specifications.getSpec()
@@ -175,19 +177,4 @@ public class CreateProjectTest extends BaseApiTest {
                 .then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN)
                 .body(Matchers.containsString(PERMISSION_ERROR));
     }
-
-    @Test
-    public void projectDeveloperShouldNotHaveRightsToCreateProject() {
-        var testData = testDataStorage.addTestData();
-        testData.getUser().
-                setRoles(TestDataGenerator.generateRoles(Role.PROJECT_DEVELOPER, "g"));
-        checkedWithSuperUser.getUserRequest().create(testData.getUser());
-
-        new UncheckedProject(Specifications.getSpec()
-                .authSpec(testData.getUser()))
-                .create(testData.getProject())
-                .then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN)
-                .body(Matchers.containsString(PERMISSION_ERROR));
-    }
-
 }

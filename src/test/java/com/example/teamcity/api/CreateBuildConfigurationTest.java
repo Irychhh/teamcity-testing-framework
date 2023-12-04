@@ -1,8 +1,11 @@
 package com.example.teamcity.api;
 
 import com.example.teamcity.api.enums.Role;
+import com.example.teamcity.api.generators.RandomData;
 import com.example.teamcity.api.generators.TestDataGenerator;
 import com.example.teamcity.api.models.BuildType;
+import com.example.teamcity.api.models.NewProjectDescription;
+import com.example.teamcity.api.models.Project;
 import com.example.teamcity.api.requests.checked.CheckedBuildConfig;
 import com.example.teamcity.api.requests.unchecked.UncheckedBuildConfig;
 import com.example.teamcity.api.spec.Specifications;
@@ -12,6 +15,7 @@ import org.testng.annotations.Test;
 
 public class CreateBuildConfigurationTest extends BaseApiTest {
     private final String PERMISSION_ERROR = "You do not have enough permissions to edit project with id: ";
+    private final String NOT_FOUND_PROJECT_ERROR = "Build type creation request should contain project node.";
 
     @Test
     public void systemAdminShouldHaveRightsToCreateBuildConfig() {
@@ -153,6 +157,111 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
                 .create(testData.getBuildType())
                 .then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN)
                 .body(Matchers.containsString(PERMISSION_ERROR + testData.getProject().getId()));
+    }
+
+    @Test
+    public void sendWithEmptyRequest() {
+        var testData = testDataStorage.addTestData();
+
+        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.SYSTEM_ADMIN, "g"));
+
+        checkedWithSuperUser.getUserRequest().create(testData.getUser());
+        checkedWithSuperUser.getProjectRequest().create(testData.getProject());
+
+        uncheckedWithSuperUser.getBuildConfigRequest()
+                .create(BuildType
+                        .builder()
+                        .build())
+                .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(Matchers.containsString(NOT_FOUND_PROJECT_ERROR));
+    }
+
+    @Test
+    public void checkErrorForMissingNameRequiredField() {
+        var testData = testDataStorage.addTestData();
+
+        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.SYSTEM_ADMIN, "g"));
+
+        checkedWithSuperUser.getUserRequest().create(testData.getUser());
+        checkedWithSuperUser.getProjectRequest().create(testData.getProject());
+
+        uncheckedWithSuperUser.getBuildConfigRequest()
+                .create(BuildType
+                        .builder()
+                        .id(testData.getProject().getId())
+                        .project(testData.getProject())
+                        .build())
+                .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(Matchers.containsString("When creating a build type, non empty name should be provided."));
+    }
+
+    @Test
+    public void checkErrorForMissingProjectRequiredField() {
+        var testData = testDataStorage.addTestData();
+
+        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.SYSTEM_ADMIN, "g"));
+
+        checkedWithSuperUser.getUserRequest().create(testData.getUser());
+        checkedWithSuperUser.getProjectRequest().create(testData.getProject());
+
+        uncheckedWithSuperUser.getBuildConfigRequest()
+                .create(BuildType
+                        .builder()
+                        .id(testData.getProject().getId())
+                        .name(testData.getBuildType().getName())
+                        .build())
+                .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(Matchers.containsString(NOT_FOUND_PROJECT_ERROR));
+    }
+
+    @Test
+    public void checkErrorForRandomRequiredFields() {
+        var testData = testDataStorage.addTestData();
+
+        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.SYSTEM_ADMIN, "g"));
+
+        checkedWithSuperUser.getUserRequest().create(testData.getUser());
+        checkedWithSuperUser.getProjectRequest().create(testData.getProject());
+
+        var testId = RandomData.getString();
+
+        uncheckedWithSuperUser.getBuildConfigRequest()
+                .create(BuildType
+                        .builder()
+                        .id(RandomData.getString())
+                        .project(NewProjectDescription
+                                .builder()
+                                .parentProject(Project.builder()
+                                        .locator("_Root")
+                                        .build())
+                                .name(RandomData.getString())
+                                .id(testId)
+                                .copyAllAssociatedSettings(true)
+                                .build())
+                        .name(RandomData.getString())
+                        .build())
+                .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND)
+                .body(Matchers.containsString("Project cannot be found by external id '" + testId + "'."));
+    }
+
+    @Test(enabled = false) // 500 в ответе
+    public void checkLengthValidationForId() {
+        var testData = testDataStorage.addTestData();
+
+        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.SYSTEM_ADMIN, "g"));
+
+        checkedWithSuperUser.getUserRequest().create(testData.getUser());
+        checkedWithSuperUser.getProjectRequest().create(testData.getProject());
+
+        uncheckedWithSuperUser.getBuildConfigRequest()
+                .create(BuildType
+                        .builder()
+                        .id(RandomData.getCriticalLengthString())
+                        .name(RandomData.getCriticalLengthString())
+                        .project(testData.getProject())
+                        .build())
+                .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(Matchers.containsString("ID should start with a latin letter and contain only latin letters, digits and underscores (at most 225 characters)"));
     }
 }
 

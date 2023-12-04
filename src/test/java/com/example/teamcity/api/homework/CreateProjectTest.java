@@ -1,5 +1,6 @@
-package com.example.teamcity.api;
+package com.example.teamcity.api.homework;
 
+import com.example.teamcity.api.BaseApiTest;
 import com.example.teamcity.api.enums.Role;
 import com.example.teamcity.api.generators.RandomData;
 import com.example.teamcity.api.generators.TestDataGenerator;

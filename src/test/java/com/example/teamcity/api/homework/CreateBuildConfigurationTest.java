@@ -1,5 +1,6 @@
-package com.example.teamcity.api;
+package com.example.teamcity.api.homework;
 
+import com.example.teamcity.api.BaseApiTest;
 import com.example.teamcity.api.enums.Role;
 import com.example.teamcity.api.generators.TestDataGenerator;
 import com.example.teamcity.api.models.BuildType;
@@ -10,7 +11,7 @@ import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.testng.annotations.Test;
 
-public class CreateBuildConfigurationTest extends BaseApiTest{
+public class CreateBuildConfigurationTest extends BaseApiTest {
     private final String PERMISSION_ERROR = "You do not have enough permissions to edit project with id: ";
 
     @Test

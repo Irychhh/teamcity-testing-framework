@@ -4,7 +4,7 @@ import com.example.teamcity.api.enums.Role;
 import com.example.teamcity.api.generators.TestDataGenerator;
 import org.testng.annotations.Test;
 
-public class HomeworkRunBuildTest extends BaseApiTest {
+public class RunBuildTest extends BaseApiTest {
     @Test
     public void systemAdminShouldBeAbleToRunBuildConfiguration() {
         var testData = testDataStorage.addTestData();

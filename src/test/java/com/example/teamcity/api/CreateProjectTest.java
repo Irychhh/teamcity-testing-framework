@@ -13,7 +13,7 @@ import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.testng.annotations.Test;
 
-public class HomeworkCreateProjectTest extends BaseApiTest {
+public class CreateProjectTest extends BaseApiTest {
     private final String EMPTY_NAME_ERROR = "Project name cannot be empty.";
     private final String PERMISSION_ERROR = "You do not have \"Create subproject\" permission in project with internal id: _Root";
     private final String PROJECT_SPECIFIED_ERROR = "No project specified. Either 'id', 'internalId' or 'locator' attribute should be present.";
@@ -166,7 +166,7 @@ public class HomeworkCreateProjectTest extends BaseApiTest {
         var testData = testDataStorage.addTestData();
         testData.getUser()
                 .setRoles(TestDataGenerator.
-                generateRoles(Role.PROJECT_VIEWER, "g"));
+                        generateRoles(Role.PROJECT_VIEWER, "g"));
         checkedWithSuperUser.getUserRequest().create(testData.getUser());
 
         new UncheckedProject(Specifications.getSpec()

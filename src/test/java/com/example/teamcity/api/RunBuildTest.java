@@ -25,3 +25,4 @@ public class RunBuildTest extends BaseApiTest{
         softy.assertThat(runBuildConfig.getBuildType().getId()).isEqualTo(testData.getBuildType().getId());
     }
 }
+

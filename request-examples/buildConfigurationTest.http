@@ -1,0 +1,90 @@
+
+
+
+### 0. Generate token
+GET http://admin:admin@192.168.0.105:8111/authenticationTest.html?csrf
+Accept: application/json
+
+### 1. Create project
+POST http://admin:admin@192.168.0.105:8111/app/rest/projects
+Content-Type: application/json
+Accept: application/json
+X-TC-CSRF-Token:079c9cf5-d441-4fab-a34a-2ff0f9ca31d7
+
+{
+    "parentProject": {
+        "locator": "_Root"
+    },
+    "name": "namefgfgfgfg",
+    "id": "idgjgjgj",
+    "copyAllAssociatedSettings": true
+}
+
+###
+# 2. Create build configuration
+POST http://admin:admin@192.168.0.105:8111/app/rest/buildTypes
+Content-Type: application/json
+Accept: application/json
+X-TC-CSRF-Token:01d01b06-0295-42d0-8a96-c8491cdfec6a
+
+{
+  "id": "id",
+  "name": "Print hello world",
+  "project": {
+    "id": "id"
+  },
+  "steps": {
+    "step": [
+      {
+        "name": "Print Hello World",
+        "type": "simpleRunner",
+        "properties": {
+          "property": [
+            {
+              "name": "script.content",
+              "value": "echo 'Hello World!'"
+            },
+            {
+              "name": "teamcity.step.mode",
+              "value": "default"
+            },
+            {
+              "name": "use.custom.script",
+              "value": "true"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+####
+
+# 3. Run build
+POST http://admin:admin@192.168.0.105:8111/app/rest/buildQueue/id:id
+Content-Type: application/json
+Accept: application/json
+X-TC-CSRF-Token:01d01b06-0295-42d0-8a96-c8491cdfec6a
+
+{
+  "buildType": {
+    "id": "id"
+  }
+}
+
+### 4. Check build status
+GET http://admin:admin@192.168.0.105:8111/app/rest/builds/id:1
+Content-Type: application/json
+Accept: application/json
+X-TC-CSRF-Token:7d7f188c-d605-4465-8fee-96a734dcff72
+
+####
+POST http://admin:admin@192.168.0.105:8111/app/rest/users
+Content-Type: application/json
+Accept: application/json
+X-TC-CSRF-Token:d201606e-869c-48da-8ba6-0f5c4fc7cb25
+
+
+{"username":"user", "password":"password", "roles": {"role": [{"roleId": "PROJECT_ADMIN", "scope": "invalid-value"}]}}
+

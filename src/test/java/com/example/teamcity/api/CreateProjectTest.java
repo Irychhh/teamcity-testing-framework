@@ -189,4 +189,5 @@ public class CreateProjectTest extends BaseApiTest {
                 .then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN)
                 .body(Matchers.containsString(PERMISSION_ERROR));
     }
+
 }

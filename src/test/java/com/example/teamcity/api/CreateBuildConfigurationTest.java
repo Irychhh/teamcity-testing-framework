@@ -155,3 +155,4 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
                 .body(Matchers.containsString(PERMISSION_ERROR + testData.getProject().getId()));
     }
 }
+

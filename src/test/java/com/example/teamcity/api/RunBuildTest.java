@@ -55,6 +55,8 @@ public class RunBuildTest extends BaseApiTest {
                 .get(testData.getBuildType().getId())
                 .then().assertThat().statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body("triggers.count", equalTo(0));
+
+        uncheckedWithSuperUser.getProjectRequest().delete(testData.getProject().getId());
     }
 }
 

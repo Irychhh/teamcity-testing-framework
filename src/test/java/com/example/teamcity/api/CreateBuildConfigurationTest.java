@@ -138,6 +138,9 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
                 .create(testData.getBuildType())
                 .then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN)
                 .body(Matchers.containsString(PERMISSION_BUILD_ERROR + testData.getProject().getId()));
+
+        uncheckedWithSuperUser.getProjectRequest().delete(testData.getProject().getId());
+        uncheckedWithSuperUser.getUserRequest().delete(testData.getUser().getUsername());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.example.teamcity.api;
 
+import com.example.teamcity.api.enums.ApiErrorMessages;
 import com.example.teamcity.api.enums.Role;
 import com.example.teamcity.api.generators.RandomData;
 import com.example.teamcity.api.generators.TestDataGenerator;
@@ -15,23 +16,20 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class CreateProjectTest extends BaseApiTest {
-    private final String EMPTY_NAME_ERROR = "Project name cannot be empty.";
-    private final String PERMISSION_ERROR = "You do not have \"Create subproject\" permission in project with internal id: _Root";
-    private final String PROJECT_SPECIFIED_ERROR = "No project specified. Either 'id', 'internalId' or 'locator' attribute should be present.";
-
     @DataProvider(name = "createProjectRoleTestData")
     public Object[][] createProjectRoleTestData() {
         return new Object[][]{
-                {"SYSTEM_ADMIN"},
-                {"PROJECT_ADMIN"},
-                {"AGENT_MANAGER"}
+                {Role.SYSTEM_ADMIN},
+                {Role.PROJECT_ADMIN},
+                {Role.AGENT_MANAGER}
         };
     }
+
     @Test(dataProvider = "createProjectRoleTestData")
-    public void rolesWhoShouldHaveRightsToCreateProject(String role) {
+    public void rolesWhoShouldHaveRightsToCreateProject(Role role) {
         var testData = testDataStorage.addTestData();
 
-        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.valueOf(role), "g"));
+        testData.getUser().setRoles(TestDataGenerator.generateRoles(role, "g"));
 
         checkedWithSuperUser.getUserRequest().create(testData.getUser());
 
@@ -55,8 +53,7 @@ public class CreateProjectTest extends BaseApiTest {
         uncheckedWithSuperUser.getProjectRequest()
                 .get(testData.getProject().getId())
                 .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND)
-                .body(Matchers.containsString("No project found by locator 'count:1,id:"
-                        + testData.getProject().getId() + "'"));
+                .body(Matchers.containsString(String.format("No project found by locator 'count:1,id:%s'", testData.getProject().getId())));
     }
 
     @Test
@@ -74,12 +71,10 @@ public class CreateProjectTest extends BaseApiTest {
 
         duplicateProjectRequest
                 .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString("Project with this name already exists: " + testData.getProject().getName()));
+                .body(Matchers.containsString(String.format("Project with this name already exists: %s", testData.getProject().getName())));
 
-        var updatedProject = uncheckedWithSuperUser.getProjectRequest()
-                .get(createdProject.getId())
-                .then().assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().as(Project.class);
+        var updatedProject = checkedWithSuperUser.getProjectRequest()
+                .get(createdProject.getId());
 
         softy.assertThat(updatedProject.getId()).isEqualTo(createdProject.getId());
         softy.assertThat(updatedProject.getName()).isEqualTo(createdProject.getName());
@@ -95,8 +90,7 @@ public class CreateProjectTest extends BaseApiTest {
                         .copyAllAssociatedSettings(false)
                         .build())
                 .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString(EMPTY_NAME_ERROR));
-
+                .body(Matchers.containsString(ApiErrorMessages.EMPTY_NAME_ERROR.getErrorMessage()));
     }
 
     @Test
@@ -112,7 +106,7 @@ public class CreateProjectTest extends BaseApiTest {
                         .copyAllAssociatedSettings(true)
                         .build())
                 .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString(PROJECT_SPECIFIED_ERROR));
+                .body(Matchers.containsString(ApiErrorMessages.PROJECT_SPECIFIED_ERROR.getErrorMessage()));
     }
 
     @Test(enabled = false) // 500 в ответе
@@ -126,7 +120,7 @@ public class CreateProjectTest extends BaseApiTest {
                         .build())
                 .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND
                 )
-                .body(Matchers.containsString(PROJECT_SPECIFIED_ERROR));
+                .body(Matchers.containsString(ApiErrorMessages.PROJECT_SPECIFIED_ERROR.getErrorMessage()));
     }
 
     @Test
@@ -152,29 +146,29 @@ public class CreateProjectTest extends BaseApiTest {
                         .builder()
                         .build())
                 .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString(EMPTY_NAME_ERROR));
+                .body(Matchers.containsString(ApiErrorMessages.EMPTY_NAME_ERROR.getErrorMessage()));
     }
 
     @DataProvider(name = "notCreateProjectRoleTestData")
     public Object[][] notCreateProjectRoleTestData() {
         return new Object[][]{
-                {"PROJECT_VIEWER"},
-                {"PROJECT_DEVELOPER"},
-                {"TOOLS_INTEGRATION"}
+                {Role.PROJECT_VIEWER},
+                {Role.PROJECT_DEVELOPER},
+                {Role.TOOLS_INTEGRATION}
         };
     }
 
     @Test(dataProvider = "notCreateProjectRoleTestData")
-    public void roleWhoShouldNotHaveRightsToCreateProject(String role) {
+    public void roleWhoShouldNotHaveRightsToCreateProject(Role role) {
         var testData = testDataStorage.addTestData();
         testData.getUser()
-                .setRoles(TestDataGenerator.generateRoles(Role.valueOf(role), "g"));
+                .setRoles(TestDataGenerator.generateRoles(role, "g"));
         checkedWithSuperUser.getUserRequest().create(testData.getUser());
 
         new UncheckedProject(Specifications.getSpec()
                 .authSpec(testData.getUser()))
                 .create(testData.getProject())
                 .then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN)
-                .body(Matchers.containsString(PERMISSION_ERROR));
+                .body(Matchers.containsString(ApiErrorMessages.PERMISSION_ERROR.getErrorMessage()));
     }
 }

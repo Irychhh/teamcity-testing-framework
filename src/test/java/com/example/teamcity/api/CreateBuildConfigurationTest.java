@@ -1,11 +1,10 @@
 package com.example.teamcity.api;
 
+import com.example.teamcity.api.enums.ApiErrorMessages;
 import com.example.teamcity.api.enums.Role;
 import com.example.teamcity.api.generators.RandomData;
 import com.example.teamcity.api.generators.TestDataGenerator;
 import com.example.teamcity.api.models.BuildType;
-import com.example.teamcity.api.models.NewProjectDescription;
-import com.example.teamcity.api.models.Project;
 import com.example.teamcity.api.requests.checked.CheckedBuildConfig;
 import com.example.teamcity.api.requests.unchecked.UncheckedBuildConfig;
 import com.example.teamcity.api.spec.Specifications;
@@ -15,22 +14,20 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class CreateBuildConfigurationTest extends BaseApiTest {
-    private final String PERMISSION_BUILD_ERROR = "You do not have enough permissions to edit project with id: ";
-    private final String NOT_FOUND_PROJECT_ERROR = "Build type creation request should contain project node.";
-
     @DataProvider(name = "createBuildRoleTestData")
     public Object[][] createBuildRoleTestData() {
         return new Object[][]{
-                {"SYSTEM_ADMIN"},
-                {"PROJECT_ADMIN"},
-                {"AGENT_MANAGER"}
+                {Role.SYSTEM_ADMIN},
+                {Role.PROJECT_ADMIN},
+                {Role.AGENT_MANAGER}
         };
     }
+
     @Test(dataProvider = "createBuildRoleTestData")
-    public void rolesWhoShouldHaveRightsToCreateBuildConfig(String role) {
+    public void rolesWhoShouldHaveRightsToCreateBuildConfig(Role role) {
         var testData = testDataStorage.addTestData();
 
-        testData.getUser().setRoles(TestDataGenerator.generateRoles(Role.valueOf(role), "g"));
+        testData.getUser().setRoles(TestDataGenerator.generateRoles(role, "g"));
 
         checkedWithSuperUser.getUserRequest().create(testData.getUser());
         checkedWithSuperUser.getProjectRequest().create(testData.getProject());
@@ -54,8 +51,7 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
         uncheckedWithSuperUser.getBuildConfigRequest()
                 .get(testData.getBuildType().getId())
                 .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND)
-                .body(Matchers.containsString("No build type nor template is found by id '"
-                        + testData.getBuildType().getId() + "'"));
+                .body(Matchers.containsString(String.format("No build type nor template is found by id '%s'.", testData.getBuildType().getId())));
     }
 
     @Test(enabled = false)
@@ -99,10 +95,8 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
 
         duplicateBuildConfigRequest
                 .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString(
-                        "The build configuration / template ID \""
-                                + testData.getBuildType().getId() +
-                                "\" is already used by another configuration or template"));
+                .body(Matchers.containsString(String.format("The build configuration / template ID \"%s\" is already used by another configuration or template",
+                        testData.getBuildType().getId())));
 
         var updatedBuildConfig = uncheckedWithSuperUser.getBuildConfigRequest()
                 .get(createdBuildConfig.getId())
@@ -116,13 +110,14 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
     @DataProvider(name = "notCreateBuildRoleTestData")
     public Object[][] notCreateBuildRoleTestData() {
         return new Object[][]{
-                {"PROJECT_VIEWER"},
-                {"PROJECT_DEVELOPER"},
-                {"TOOLS_INTEGRATION"}
+                {Role.PROJECT_VIEWER},
+                {Role.PROJECT_DEVELOPER},
+                {Role.TOOLS_INTEGRATION}
         };
     }
+
     @Test(dataProvider = "notCreateBuildRoleTestData")
-    public void rolesWhoShouldNotHaveRightToCreateBuildConfig(String role) {
+    public void rolesWhoShouldNotHaveRightToCreateBuildConfig(Role role) {
         var testData = testDataStorage.addTestData();
 
         checkedWithSuperUser.getProjectRequest()
@@ -130,14 +125,14 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
 
         testData.getUser()
                 .setRoles(TestDataGenerator.
-                        generateRoles(Role.valueOf(role), "g"));
+                        generateRoles(role, "g"));
         checkedWithSuperUser.getUserRequest().create(testData.getUser());
 
         new UncheckedBuildConfig(Specifications.getSpec()
                 .authSpec(testData.getUser()))
                 .create(testData.getBuildType())
                 .then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN)
-                .body(Matchers.containsString(PERMISSION_BUILD_ERROR + testData.getProject().getId()));
+                .body(Matchers.containsString(ApiErrorMessages.PERMISSION_BUILD_ERROR.getErrorMessage() + testData.getProject().getId()));
 
         uncheckedWithSuperUser.getProjectRequest().delete(testData.getProject().getId());
         uncheckedWithSuperUser.getUserRequest().delete(testData.getUser().getUsername());
@@ -157,7 +152,7 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
                         .builder()
                         .build())
                 .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString(NOT_FOUND_PROJECT_ERROR));
+                .body(Matchers.containsString(ApiErrorMessages.NOT_FOUND_PROJECT_ERROR.getErrorMessage()));
     }
 
     @Test
@@ -195,7 +190,7 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
                         .name(testData.getBuildType().getName())
                         .build())
                 .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString(NOT_FOUND_PROJECT_ERROR));
+                .body(Matchers.containsString(ApiErrorMessages.NOT_FOUND_PROJECT_ERROR.getErrorMessage()));
     }
 
     @Test
@@ -209,23 +204,12 @@ public class CreateBuildConfigurationTest extends BaseApiTest {
 
         var testId = RandomData.getString();
 
+        testData.getBuildType().getProject().setId(testId);
+
         uncheckedWithSuperUser.getBuildConfigRequest()
-                .create(BuildType
-                        .builder()
-                        .id(RandomData.getString())
-                        .project(NewProjectDescription
-                                .builder()
-                                .parentProject(Project.builder()
-                                        .locator("_Root")
-                                        .build())
-                                .name(RandomData.getString())
-                                .id(testId)
-                                .copyAllAssociatedSettings(true)
-                                .build())
-                        .name(RandomData.getString())
-                        .build())
+                .create(testData.getBuildType())
                 .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND)
-                .body(Matchers.containsString("Project cannot be found by external id '" + testId + "'."));
+                .body(Matchers.containsString(String.format("Project cannot be found by external id '%s'.", testId)));
     }
 
     @Test(enabled = false) // 500 в ответе

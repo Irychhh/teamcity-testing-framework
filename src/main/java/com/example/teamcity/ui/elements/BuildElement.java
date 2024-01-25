@@ -5,13 +5,13 @@ import com.example.teamcity.ui.Selectors;
 import lombok.Getter;
 
 @Getter
-public class ProjectElement extends PageElement{
-    private final SelenideElement header;
+public class BuildElement extends PageElement {
+    private final SelenideElement nameError;
     private final SelenideElement icon;
 
-    public ProjectElement(SelenideElement element) {
+    public BuildElement(SelenideElement element) {
         super(element);
-        this.header = findElement(Selectors.byDataTest("subproject"));
+        this.nameError = findElement(Selectors.byId("errorName"));
         this.icon = findElement("svg");
     }
 }

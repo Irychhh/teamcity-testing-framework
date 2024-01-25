@@ -28,6 +28,7 @@ public class TestDataGenerator {
         var project = NewProjectDescription
                 .builder()
                 .parentProject(Project.builder()
+                        .id("parentProject_id=" + RandomData.getString())
                         .locator("_Root")
                         .build())
                 .name(RandomData.getString())

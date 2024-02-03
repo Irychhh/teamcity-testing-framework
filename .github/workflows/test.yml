@@ -29,7 +29,8 @@ jobs:
       - name: Pull Selenoid Chrome/Firefox/..
 #        run: docker pull selenoid/vnc_chrome:119.0
         run: |
-          image_names=($(awk -F'"' '/"image": "/{print $4}' "$(pwd)/config/browsers.json"))
+          cd $teamcity_tests_directory/infra
+          image_names=($(awk -F'"' '/"image": "/{print $4}' browsers.json))
           echo "Pull all browser images: $image_names"
           for image in "${image_names[@]}"; do
           docker pull $image

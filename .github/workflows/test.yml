@@ -27,14 +27,14 @@ jobs:
         run: echo "host=$HOST:8111" >> src/main/resources/config.properties
 
       - name: Pull Selenoid Chrome/Firefox/..
-#        run: docker pull selenoid/vnc_chrome:119.0
-        run: |
-          cd $teamcity_tests_directory/infra
-          image_names=($(awk -F'"' '/"image": "/{print $4}' browsers.json))
-          echo "Pull all browser images: $image_names"
-          for image in "${image_names[@]}"; do
-          docker pull $image
-          done
+        run: docker pull selenoid/vnc_chrome:119.0
+#        run: |
+#          cd $teamcity_tests_directory/infra
+#          image_names=($(awk -F'"' '/"image": "/{print $4}' browsers.json))
+#          echo "Pull all browser images: $image_names"
+#          for image in "${image_names[@]}"; do
+#          docker pull $image
+#          done
 
       - name: Run Selenoid
         # Флаг -d запускает контейнер в фоновом режиме (так как, например, контейнер с сервером не имеет окончания, он просто всегда включен,

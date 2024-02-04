@@ -89,9 +89,16 @@ jobs:
         # Не указываем clean, чтобы потом в итоговом репорте были и setup тесты
         run: ./mvnw test -Dtest=SetupTest#setupTeamCityAgentTest
 
-      - name: Run tests
-        # Указываем группу, чтобы еще раз не запустить тесты, которые использовались для сетапа сервера и агента
-        run: ./mvnw test -Dgroups=Regression
+#      - name: Run tests
+#        # Указываем группу, чтобы еще раз не запустить тесты, которые использовались для сетапа сервера и агента
+#        run: ./mvnw test -Dgroups=Regression
+
+      - name: Run API tests
+        run: ./mvnw test -DsuiteXmlFile=testng-suites/api-suite.xml
+
+      - name: Run UI tests
+        run: ./mvnw test -DsuiteXmlFile=testng-suites/ui-suite.xml
+
             
           
 

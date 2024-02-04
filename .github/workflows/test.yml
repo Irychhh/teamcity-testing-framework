@@ -28,13 +28,13 @@ jobs:
 
       - name: Pull Selenoid Chrome/Firefox/..
         run: docker pull selenoid/vnc_chrome:119.0
-#        run: |
-#          cd $teamcity_tests_directory/infra
-#          image_names=($(awk -F'"' '/"image": "/{print $4}' browsers.json))
-#          echo "Pull all browser images: $image_names"
-#          for image in "${image_names[@]}"; do
-#          docker pull $image
-#          done
+      #        run: |
+      #          cd $teamcity_tests_directory/infra
+      #          image_names=($(awk -F'"' '/"image": "/{print $4}' browsers.json))
+      #          echo "Pull all browser images: $image_names"
+      #          for image in "${image_names[@]}"; do
+      #          docker pull $image
+      #          done
 
       - name: Run Selenoid
         # Флаг -d запускает контейнер в фоновом режиме (так как, например, контейнер с сервером не имеет окончания, он просто всегда включен,
@@ -53,7 +53,7 @@ jobs:
           -p 8080:8080 \
           aerokube/selenoid-ui \
           --selenoid-uri http://$HOST:4444
-          
+
       - name: Run TeamCity Server
         # Флаг -u 0 запускает контейнер от имени root, чтобы был доступ на запись файлов в директории, указанные в volume.
         # По-хорошему, надо делать chown -R 1000:1000 на эти директории и запускать контейнер без этого флага,
@@ -89,9 +89,9 @@ jobs:
         # Не указываем clean, чтобы потом в итоговом репорте были и setup тесты
         run: ./mvnw test -Dtest=SetupTest#setupTeamCityAgentTest
 
-#      - name: Run tests
-#        # Указываем группу, чтобы еще раз не запустить тесты, которые использовались для сетапа сервера и агента
-#        run: ./mvnw test -Dgroups=Regression
+      #      - name: Run tests
+      #        # Указываем группу, чтобы еще раз не запустить тесты, которые использовались для сетапа сервера и агента
+      #        run: ./mvnw test -Dgroups=Regression
 
       - name: Run API tests
         run: ./mvnw test -DsuiteXmlFile=testng-suites/api-suite.xml
@@ -99,6 +99,22 @@ jobs:
       - name: Run UI tests
         run: ./mvnw test -DsuiteXmlFile=testng-suites/ui-suite.xml
 
-            
-          
+      - name: Install Allure Command Line
+        run: |
+          wget https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.24.0/allure-commandline-2.24.0.zip
+          unzip -o allure-commandline-2.24.0.zip -d allure
+          sudo mv allure /usr/bin/
+          rm allure-commandline-2.24.0.zip
+
+      - name: Generate Allure Report
+        run: |
+          allure generate target/allure-results --clean
+          allure report generate -o allure-report
+
+      - name: Upload Allure Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: allure-report
+          path: allure-report
+
 

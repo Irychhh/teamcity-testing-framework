@@ -70,20 +70,19 @@ jobs:
       - name: Set up TeamCity Server
         # Настройка сервера при первом запуске (принятие лицензии, выбор базы данных и т.д.), реализованная в виде теста
         run: ./mvnw clean test -Dtest=SetupTest#startUpTest
-
       - name: Set up superUserToken environment variable
         run: |
           SUPER_USER_TOKEN=$(docker logs teamcity-server | grep -o 'Super user authentication token: [0-9]*' | awk '{print $NF}')
-
-        # Проверяем, существует ли строка "superUserToken=" в $GITHUB_ENV
+          # Проверяем, существует ли строка "superUserToken=" в $GITHUB_ENV
           if grep -q "superUserToken=" $GITHUB_ENV; then
-          # Если строка существует, то заменяем значение
-          sed -i "s/superUserToken=.*/superUserToken=$SUPER_USER_TOKEN/" $GITHUB_ENV
+            # Если строка существует, то заменяем значение
+            sed -i "s/superUserToken=.*/superUserToken=$SUPER_USER_TOKEN/" $GITHUB_ENV
           else
-          # Если строки нет, то добавляем её
-          echo "superUserToken=$SUPER_USER_TOKEN" >> $GITHUB_ENV
+            # Если строки нет, то добавляем её
+            echo "superUserToken=$SUPER_USER_TOKEN" >> $GITHUB_ENV
           fi
           echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
+
 
       - name: Set up superUserToken config property
         run: |

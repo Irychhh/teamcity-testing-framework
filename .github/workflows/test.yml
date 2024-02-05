@@ -25,6 +25,7 @@ jobs:
       # Храним переменные как в переменных среды ($GITHUB_ENV), для использования внутри этого yml файла, так и в config.properties, для использования в тестах
       - name: Setup host config.properties
         run: |
+          echo -e "\n" >> src/main/resources/config.properties
           echo -e "host=$HOST:8111\n" >> src/main/resources/config.properties
           cat src/main/resources/config.properties
 

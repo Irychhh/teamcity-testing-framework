@@ -27,7 +27,6 @@ jobs:
         run: |
           echo -e "\n" >> src/main/resources/config.properties
           echo -e "host=$HOST:8111\n" >> src/main/resources/config.properties
-#          echo -e "remote=http://$HOST:4444/wd/hub\n" >> src/main/resources/config.properties
           cat src/main/resources/config.properties
 
       - name: Pull Selenoid Chrome/Firefox/..

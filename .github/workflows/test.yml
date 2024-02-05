@@ -25,7 +25,7 @@ jobs:
       # Храним переменные как в переменных среды ($GITHUB_ENV), для использования внутри этого yml файла, так и в config.properties, для использования в тестах
       - name: Setup host config.properties
         run: |
-          echo "host=$HOST:8111" >> src/main/resources/config.properties
+          echo -e "host=$HOST:8111\n" > src/main/resources/config.properties
           cat src/main/resources/config.properties
 
       - name: Pull Selenoid Chrome/Firefox/..
@@ -85,7 +85,7 @@ jobs:
 
       - name: Set up superUserToken config property
         run: |
-          echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
+          echo -e "superUserToken=$SUPER_USER_TOKEN\n" > src/main/resources/config.properties
           cat src/main/resources/config.properties
 
       - name: Run TeamCity Agent

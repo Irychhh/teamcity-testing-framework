@@ -72,26 +72,23 @@ jobs:
         run: ./mvnw clean test -Dtest=SetupTest#startUpTest
 
       - name: Set up superUserToken environment variable
-        # Берем из лога контейнера строку с последним упоминанием токена, из нее 6-е слово, что соответствует токену
         run: |
-        # Сохраняем токен в переменную
-        # SUPER_USER_TOKEN=$(docker logs teamcity-server | grep -о 'Super user authentication token ' | tail -n 1 | awk '{print $6}')
-            docker logs teamcity-server | cat |
-            SUPER_USER_TOKEN=$(docker logs teamcity-server | grep -o 'Super user authentication token. \([0-9]*\)' | awk '{print $NF})
-  
+          SUPER_USER_TOKEN=$(docker logs teamcity-server | grep -o 'Super user authentication token: [0-9]*' | awk '{print $NF}')
+
         # Проверяем, существует ли строка "superUserToken=" в $GITHUB_ENV
           if grep -q "superUserToken=" $GITHUB_ENV; then
-        # Если строка существует, то заменяем значение
+          # Если строка существует, то заменяем значение
           sed -i "s/superUserToken=.*/superUserToken=$SUPER_USER_TOKEN/" $GITHUB_ENV
           else
-        # Если строки нет, то добавляем её
+          # Если строки нет, то добавляем её
           echo "superUserToken=$SUPER_USER_TOKEN" >> $GITHUB_ENV
           fi
           echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
 
       - name: Set up superUserToken config property
         run: |
-          echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
+#          echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
+          echo "$GITHUB_ENV"
           cat src/main/resources/config.properties 
 
       - name: Run TeamCity Agent

@@ -87,7 +87,7 @@ jobs:
 
       - name: Set up superUserToken config property
         run: |
-#          echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
+        # echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
           echo "$GITHUB_ENV"
           cat src/main/resources/config.properties 
 

@@ -49,7 +49,14 @@ jobs:
           -p 4444:4444 \
           aerokube/selenoid:latest-release
 
-      # В этом степе нет смысла, так как через GitHub Actions нет доступа к Selenoid UI. Но зато это полезно при локальном запуске через act, для отладки
+      - name: Setup remote
+        run: |
+          SELENOID_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' selenoid)
+          echo -e "remote=http://${SELENOID_IP}:4444/wd/hub\n" >> src/main/resources/config.properties
+          cat src/main/resources/config.properties
+
+
+# В этом степе нет смысла, так как через GitHub Actions нет доступа к Selenoid UI. Но зато это полезно при локальном запуске через act, для отладки
       - name: Run Selenoid UI
         run: |
           docker run -d --name selenoid-ui \

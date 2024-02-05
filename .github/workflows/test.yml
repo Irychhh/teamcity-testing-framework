@@ -82,11 +82,11 @@ jobs:
             echo "superUserToken=$SUPER_USER_TOKEN" >> $GITHUB_ENV
           fi
             echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
+            echo "$GITHUB_ENV"
       - name: Set up superUserToken config property
         run: |
-        # echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
-          echo "$GITHUB_ENV"
-          cat src/main/resources/config.properties 
+          # echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
+          cat src/main/resources/config.properties
 
       - name: Run TeamCity Agent
         run: |

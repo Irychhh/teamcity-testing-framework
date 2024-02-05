@@ -81,7 +81,7 @@ jobs:
             # Если строки нет, то добавляем её
             echo "superUserToken=$SUPER_USER_TOKEN" >> $GITHUB_ENV
           fi
-          echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
+            echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
       - name: Set up superUserToken config property
         run: |
         # echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties

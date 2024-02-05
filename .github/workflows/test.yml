@@ -71,6 +71,10 @@ jobs:
         # Настройка сервера при первом запуске (принятие лицензии, выбор базы данных и т.д.), реализованная в виде теста
         run: ./mvnw clean test -Dtest=SetupTest#startUpTest
 
+      - name: Print Container Logs
+        run: |
+          docker logs teamcity-server
+
       - name: Set up superUserToken environment variable
         run: |
           SUPER_USER_TOKEN=$(docker logs teamcity-server | grep -o 'Super user authentication token: [0-9]*' | awk '{print $NF}')
@@ -84,7 +88,7 @@ jobs:
           fi
             echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
             echo "$GITHUB_ENV"
-          cat docker logs teamcity-server
+
       - name: Set up superUserToken config property
         run: |
           # echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties

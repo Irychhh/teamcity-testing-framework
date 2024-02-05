@@ -24,9 +24,9 @@ jobs:
 
       # Храним переменные как в переменных среды ($GITHUB_ENV), для использования внутри этого yml файла, так и в config.properties, для использования в тестах
       - name: Setup host config.properties
-#        run: echo "host=$HOST:8111" >> src/main/resources/config.properties
         run: |
-          sed -i "s/^host=.*/host=$HOST:8111/" src/main/resources/config.properties
+          echo "host=$HOST:8111" >> src/main/resources/config.properties
+          cat src/main/resources/config.properties
 
       - name: Pull Selenoid Chrome/Firefox/..
         run: docker pull selenoid/vnc_chrome:119.0
@@ -80,20 +80,12 @@ jobs:
       - name: Set up superUserToken environment variable
         run: |
           SUPER_USER_TOKEN=$(docker logs teamcity-server | grep -o 'Super user authentication token: [0-9]*' | awk '{print $NF}')
-          # Проверяем, существует ли строка "superUserToken=" в $GITHUB_ENV
-          if grep -q "superUserToken=" $GITHUB_ENV; then
-            # Если строка существует, то заменяем значение
-            sed -i "s/superUserToken=.*/superUserToken=$SUPER_USER_TOKEN/" $GITHUB_ENV
-          else
-            # Если строки нет, то добавляем её
-            echo "superUserToken=$SUPER_USER_TOKEN" >> $GITHUB_ENV
-          fi
             echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
             echo "$GITHUB_ENV"
 
       - name: Set up superUserToken config property
         run: |
-          # echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
+          echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
           cat src/main/resources/config.properties
 
       - name: Run TeamCity Agent

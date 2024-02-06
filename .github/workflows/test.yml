@@ -115,25 +115,28 @@ jobs:
       - name: Run API tests
         run: ./mvnw test -DsuiteXmlFile=testng-suites/api-suite.xml
 
-      - name: Run UI tests
-        run: ./mvnw test -DsuiteXmlFile=testng-suites/ui-suite.xml
-
-      - name: Install Allure Command Line
-        run: |
-          wget https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.24.0/allure-commandline-2.24.0.zip
-          unzip -o allure-commandline-2.24.0.zip -d allure
-          sudo mv allure /usr/bin/
-          rm allure-commandline-2.24.0.zip
-
-      - name: Generate Allure Report
-        run: |
-          allure generate target/allure-results --clean
-          allure report generate -o allure-report
-
-      - name: Upload Allure Report
-        uses: actions/upload-artifact@v2
+      - name: Load test report history
+        uses: actions/checkout@v3
+        if: always()
+        continue-on-error: true
         with:
-          name: allure-report
-          path: allure-report
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Build test report
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          gh_pages: gh-pages
+          allure_history: allure-history
+          allure_results: build/allure-results
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
 
 

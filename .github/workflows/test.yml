@@ -30,7 +30,7 @@ jobs:
           cat src/main/resources/config.properties
 
       - name: Pull Selenoid Chrome/Firefox/..
-        run: docker pull selenoid/vnc_chrome:119.0
+        run: docker pull selenoid/vnc:chrome_99.0
       #        run: |
       #          cd $teamcity_tests_directory/infra
       #          image_names=($(awk -F'"' '/"image": "/{print $4}' browsers.json))

@@ -85,16 +85,18 @@ jobs:
         run: |
           docker logs teamcity-server
 
-      - name: Set up superUserToken environment variable
+      - name: Set up superUserToken environment variable and config property
         run: |
           SUPER_USER_TOKEN=$(docker logs teamcity-server | grep -o 'Super user authentication token: [0-9]*' | awk '{print $NF}')
             echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
             echo "$GITHUB_ENV"
-
-      - name: Set up superUserToken config property
-        run: |
           echo -e "superUserToken=$SUPER_USER_TOKEN\n" >> src/main/resources/config.properties
           cat src/main/resources/config.properties
+
+#      - name: Set up superUserToken config property
+#        run: |
+#          echo -e "superUserToken=$SUPER_USER_TOKEN\n" >> src/main/resources/config.properties
+#          cat src/main/resources/config.properties
 
       - name: Run TeamCity Agent
         run: |

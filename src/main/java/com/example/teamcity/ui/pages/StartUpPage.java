@@ -23,7 +23,7 @@ public class StartUpPage extends Page{
     private SelenideElement header = element($("h1#header"));
 
     public StartUpPage open() {
-        Selenide.open("/");
+        Selenide.open("");
         return this;
     }
 

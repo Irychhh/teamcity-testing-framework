@@ -47,7 +47,8 @@ jobs:
           -v /var/run/docker.sock:/var/run/docker.sock \
           -v $(pwd)/config/:/etc/selenoid/:ro \
           -p 4444:4444 \
-          aerokube/selenoid:latest-release
+          aerokube/selenoid
+#          aerokube/selenoid:latest-release
 
 #      - name: Setup remote
 #        run: |

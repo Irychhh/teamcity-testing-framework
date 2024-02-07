@@ -43,12 +43,11 @@ jobs:
         # Флаг -d запускает контейнер в фоновом режиме (так как, например, контейнер с сервером не имеет окончания, он просто всегда включен,
         # и если мы без этого флага в него перейдем, то никогда не сможем перешагнуть к следующему степу
         run: |
-          docker run -d --name selenoid \
+          docker run --name selenoid \
           -v /var/run/docker.sock:/var/run/docker.sock \
           -v $(pwd)/config/:/etc/selenoid/:ro \
           -p 4444:4444 \
-          aerokube/selenoid
-#          aerokube/selenoid:latest-release
+          aerokube/selenoid:latest-release
 
 #      - name: Setup remote
 #        run: |

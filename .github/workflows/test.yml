@@ -45,7 +45,7 @@ jobs:
         run: |
           docker run -d --name selenoid \
           -v /var/run/docker.sock:/var/run/docker.sock \
-          -v $(pwd):/etc/selenoid/:ro \
+          -v $(pwd)/infra/:/etc/selenoid/:ro \
           -p 4444:4444 \
           aerokube/selenoid:latest-release
 

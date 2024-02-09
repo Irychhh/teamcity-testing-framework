@@ -121,7 +121,7 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          ref: github-pages
+          ref: hometask-3
           path: github-pages
 
       - name: Build test report
@@ -130,14 +130,14 @@ jobs:
         with:
           gh_pages: github-pages
           allure_history: allure-history
-          allure_results: target/allure-results
+          allure_results: allure-results
 
       - name: Publish test report
         uses: peaceiris/actions-gh-pages@v3
         if: always()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: github-pages
+          publish_branch: hometask-3
           publish_dir: allure-history
 
 

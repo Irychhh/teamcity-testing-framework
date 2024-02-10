@@ -70,6 +70,7 @@ jobs:
       - name: Print Container Logs
         run: |
           docker logs teamcity-server
+          
 
       - name: Set up superUserToken environment variable and config property
         run: |

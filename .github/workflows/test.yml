@@ -31,13 +31,6 @@ jobs:
 
       - name: Pull Selenoid Chrome/Firefox/..
         run: docker pull selenoid/vnc:firefox_89.0
-      #        run: |
-      #          cd $teamcity_tests_directory/infra
-      #          image_names=($(awk -F'"' '/"image": "/{print $4}' browsers.json))
-      #          echo "Pull all browser images: $image_names"
-      #          for image in "${image_names[@]}"; do
-      #          docker pull $image
-      #          done
 
       - name: Run Selenoid
         # Флаг -d запускает контейнер в фоновом режиме (так как, например, контейнер с сервером не имеет окончания, он просто всегда включен,
@@ -48,13 +41,6 @@ jobs:
           -v $(pwd)/infra/:/etc/selenoid/:ro \
           -p 4444:4444 \
           aerokube/selenoid:latest-release
-
-#      - name: Setup remote
-#        run: |
-#          SELENOID_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' selenoid)
-#          echo -e "remote=http://${SELENOID_IP}:4444/wd/hub\n" >> src/main/resources/config.properties
-#          cat src/main/resources/config.properties
-
 
 # В этом степе нет смысла, так как через GitHub Actions нет доступа к Selenoid UI. Но зато это полезно при локальном запуске через act, для отладки
       - name: Run Selenoid UI
@@ -92,11 +78,6 @@ jobs:
             echo "$GITHUB_ENV"
           echo -e "superUserToken=$SUPER_USER_TOKEN\n" >> src/main/resources/config.properties
           cat src/main/resources/config.properties
-
-#      - name: Set up superUserToken config property
-#        run: |
-#          echo -e "superUserToken=$SUPER_USER_TOKEN\n" >> src/main/resources/config.properties
-#          cat src/main/resources/config.properties
 
       - name: Run TeamCity Agent
         run: |

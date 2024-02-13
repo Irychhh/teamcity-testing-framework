@@ -24,13 +24,18 @@ public class UncheckedRunBuild extends Request implements CrudInterface {
     }
 
     @Override
-    public Object get(String id) {
-        return null;
+    public Response get(String id) {
+        return given()
+                .spec(spec)
+                .get(RUN_BUILD_ENDPOINT + "/id:" + id);
     }
 
     @Override
-    public Object update(String id, Object obj) {
-        return null;
+    public Response update(String id, Object obj) {
+        return given()
+                .spec(spec)
+                .body(obj)
+                .put(RUN_BUILD_ENDPOINT + "/id:" + id);
     }
 
     @Override

@@ -24,17 +24,13 @@ jobs:
 
       # Храним переменные как в переменных среды ($GITHUB_ENV), для использования внутри этого yml файла, так и в config.properties, для использования в тестах
       - name: Setup host config.properties
-        run: echo "host=$HOST:8111" >> src/main/resources/config.properties
+        run: |
+          echo -e "\n" >> src/main/resources/config.properties
+          echo -e "host=$HOST:8111\n" >> src/main/resources/config.properties
+          cat src/main/resources/config.properties
 
       - name: Pull Selenoid Chrome/Firefox/..
-        run: docker pull selenoid/vnc_chrome:119.0
-#        run: |
-#          cd $teamcity_tests_directory/infra
-#          image_names=($(awk -F'"' '/"image": "/{print $4}' browsers.json))
-#          echo "Pull all browser images: $image_names"
-#          for image in "${image_names[@]}"; do
-#          docker pull $image
-#          done
+        run: docker pull selenoid/vnc:firefox_89.0
 
       - name: Run Selenoid
         # Флаг -d запускает контейнер в фоновом режиме (так как, например, контейнер с сервером не имеет окончания, он просто всегда включен,
@@ -42,18 +38,18 @@ jobs:
         run: |
           docker run -d --name selenoid \
           -v /var/run/docker.sock:/var/run/docker.sock \
-          -v $(pwd)/config/:/etc/selenoid/:ro \
+          -v $(pwd)/infra/:/etc/selenoid/:ro \
           -p 4444:4444 \
           aerokube/selenoid:latest-release
 
-      # В этом степе нет смысла, так как через GitHub Actions нет доступа к Selenoid UI. Но зато это полезно при локальном запуске через act, для отладки
+# В этом степе нет смысла, так как через GitHub Actions нет доступа к Selenoid UI. Но зато это полезно при локальном запуске через act, для отладки
       - name: Run Selenoid UI
         run: |
           docker run -d --name selenoid-ui \
           -p 8080:8080 \
           aerokube/selenoid-ui \
           --selenoid-uri http://$HOST:4444
-          
+
       - name: Run TeamCity Server
         # Флаг -u 0 запускает контейнер от имени root, чтобы был доступ на запись файлов в директории, указанные в volume.
         # По-хорошему, надо делать chown -R 1000:1000 на эти директории и запускать контейнер без этого флага,
@@ -71,13 +67,17 @@ jobs:
         # Настройка сервера при первом запуске (принятие лицензии, выбор базы данных и т.д.), реализованная в виде теста
         run: ./mvnw clean test -Dtest=SetupTest#startUpTest
 
-      - name: Set up superUserToken environment variable
-        # Берем из лога контейнера строку с последним упоминанием токена, из нее 6-е слово, что соответствует токену
-        run: echo "SUPER_USER_TOKEN=$(docker logs teamcity-server | grep 'Super user authentication token' | tail -n 1 | awk '{print $6}')" >> $GITHUB_ENV
-
-      - name: Set up superUserToken config property
+      - name: Print Container Logs
         run: |
-          echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
+          docker logs teamcity-server
+          
+
+      - name: Set up superUserToken environment variable and config property
+        run: |
+          SUPER_USER_TOKEN=$(docker logs teamcity-server | grep -o 'Super user authentication token: [0-9]*' | awk '{print $NF}')
+            echo "SUPER_USER_TOKEN=$SUPER_USER_TOKEN"
+            echo "$GITHUB_ENV"
+          echo -e "superUserToken=$SUPER_USER_TOKEN\n" >> src/main/resources/config.properties
           cat src/main/resources/config.properties
 
       - name: Run TeamCity Agent
@@ -91,9 +91,35 @@ jobs:
         # Не указываем clean, чтобы потом в итоговом репорте были и setup тесты
         run: ./mvnw test -Dtest=SetupTest#setupTeamCityAgentTest
 
-      - name: Run tests
-        # Указываем группу, чтобы еще раз не запустить тесты, которые использовались для сетапа сервера и агента
-        run: ./mvnw test -Dgroups=Regression
-            
-          
+      #      - name: Run tests
+      #        # Указываем группу, чтобы еще раз не запустить тесты, которые использовались для сетапа сервера и агента
+      #        run: ./mvnw test -Dgroups=Regression
+
+      - name: Run API tests
+        run: ./mvnw test -DsuiteXmlFile=testng-suites/api-suite.xml
+
+      - name: Load test report history
+        uses: actions/checkout@v3
+        if: always()
+        continue-on-error: true
+        with:
+          ref: hometask-3
+          path: github-pages
+
+      - name: Build test report
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          gh_pages: github-pages
+          allure_history: allure-history
+          allure_results: allure-results
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+
 
